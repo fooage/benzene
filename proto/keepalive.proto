@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.com/fooage/messier/proto/pb";
+
+package messier.heartbeat;
+
+// If code == 200, it means client want to know overall health status.
+message HeartbeatRequest {
+    int32 code = 1;
+}
+
+message HeartbeatReply {
+    enum Status {
+        UNKNOWN = 0;
+        SERVING = 1; // server serving now
+        NOT_SERVING = 2; // server not serving now
+    }
+    Status status = 1;
+}
+
+// HeartBeat is a simple keepalive service.
+service Heartbeat {
+    // Directly query the service health of the server.
+    rpc HeartCheck(HeartbeatRequest) returns (HeartbeatReply) {}
+    // Monitor the health status of a node and notify another node directly if
+    // there is a problem with the server by a stream.
+    rpc HeartWatch(HeartbeatRequest) returns (stream HeartbeatReply) {}
+}

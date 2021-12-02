@@ -1,0 +1,13 @@
+server:
+  # Mainly some configuration information of the node itself.
+  connect:
+    local_address: '127.0.0.1:9901'
+    # This address determined which node you will request first in the ring, but
+    # it will change this address to the correct one.
+    access_address: '127.0.0.1:9901'
+  # Keepalive service to keepalive in the cluster.
+  keepalive:
+    # The duration of keepalive time out, which calculated in seconds.
+    time_out: 30
+    # Node will retry some times to reconnect.
+    error_retry: 5

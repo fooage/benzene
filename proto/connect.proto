@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "github.com/fooage/messier/proto/pb";
+
+package messier.connect;
+
+// Information include some statement of connection between nodes. This ensures 
+// that the information stored in each node is concise.
+message Information {
+    // current node information
+    string curr_address = 1;
+    string curr_hash = 2;
+    // next node information
+    string next_address = 3;
+    string next_hash = 4;
+    // prev node information
+    string prev_address = 5;
+    string prev_hash = 6;
+}
+
+// Some request or reply need an empty one.
+message EmptyMessage {}
+
+message InfoRequest {
+    Information info =1;
+}
+
+message InfoReply {
+    Information info = 1;
+}
+
+// Router this service can provide an interface to modify and query node
+// information. One of the hash values is very important to determine the file
+// location and the position of the node in the ring.
+service Router {
+    rpc GetInformation(EmptyMessage) returns (InfoReply) {} 
+    rpc SetConnection(InfoRequest) returns (EmptyMessage) {}
+    // When the hash value is greater than the node and less than the next
+    // node, it will return appropriate.
+    rpc MoveGuide(InfoRequest) returns (InfoReply) {}
+}
