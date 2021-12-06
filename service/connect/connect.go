@@ -21,7 +21,7 @@ func NewRouter(info *pb.Information) *Router {
 	event.Subscribe("reconnect", ch)
 	return &Router{
 		info:   info,
-		backup: make([]string, 16),
+		backup: make([]string, 0, 16),
 		event:  ch,
 	}
 }

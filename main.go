@@ -53,6 +53,7 @@ func main() {
 	// If this node is original node in the cluster, it will not access other
 	// node. Key goroutines for connection and disconnection and reconnection
 	// in the cluster's ring.
+	go router.ConnectCluster(access)
 	pb.RegisterRouterServer(server, router)
 	pb.RegisterHeartbeatServer(server, heartbeat)
 	if err = server.Serve(lis); err != nil {
