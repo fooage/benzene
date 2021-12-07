@@ -54,6 +54,7 @@ func main() {
 	// node. Key goroutines for connection and disconnection and reconnection
 	// in the cluster's ring.
 	go router.ConnectCluster(access)
+	go heartbeat.HeartKeeping()
 	pb.RegisterRouterServer(server, router)
 	pb.RegisterHeartbeatServer(server, heartbeat)
 	if err = server.Serve(lis); err != nil {
