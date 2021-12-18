@@ -14,7 +14,7 @@ import (
 // HeartKeeping function ensures that it always listens to the next node's
 // keepalive packet and sends a keepalive to the new node if the connection
 // information has been updated.
-func (h Heartbeat) HeartKeeping() {
+func (h *Heartbeat) HeartKeeping() {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
 	for {
@@ -31,7 +31,7 @@ func (h Heartbeat) HeartKeeping() {
 	receiving:
 		for {
 			select {
-			case <-h.event:
+			case <-h.redirect:
 				break receiving
 			default:
 				reply, err := stream.Recv()
@@ -39,8 +39,10 @@ func (h Heartbeat) HeartKeeping() {
 				if err == io.EOF || err != nil || time.Now().After(lastTime.Add(h.timeout)) {
 					log.Printf("the %s occured an timeout: %v\n", h.info.NextAddress, err)
 					event.Publish("reconnect", struct{}{})
+					time.Sleep(h.timeout / 4)
 					break receiving
 				}
+				event.Publish("refresh", struct{}{})
 				lastTime = time.Now()
 				log.Printf("recv a heartbeat from %s: %v\n", h.info.NextAddress, reply)
 			}

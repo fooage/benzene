@@ -10,19 +10,23 @@ import (
 
 // Router has its information which include ip hash and address.
 type Router struct {
-	info   *pb.Information
-	backup []string           // there are some address for reconnect cluster
-	event  event.EventChannel // notice router reconnect to other node
+	info      *pb.Information
+	backup    *pb.Information    // info for reconnect cluster
+	reconnect event.EventChannel // notice router reconnect to other node
+	refresh   event.EventChannel // notice router's info had changed
 	pb.UnimplementedRouterServer
 }
 
 func NewRouter(info *pb.Information) *Router {
-	ch := make(event.EventChannel, 8)
-	event.Subscribe("reconnect", ch)
+	reconnectChannel := make(event.EventChannel, 8)
+	event.Subscribe("reconnect", reconnectChannel)
+	refreshChannel := make(event.EventChannel, 8)
+	event.Subscribe("refresh", refreshChannel)
 	return &Router{
-		info:   info,
-		backup: make([]string, 0, 16),
-		event:  ch,
+		info:      info,
+		backup:    nil,
+		reconnect: reconnectChannel,
+		refresh:   refreshChannel,
 	}
 }
 
@@ -31,12 +35,16 @@ func (r Router) GetInformation(ctx context.Context, empty *pb.EmptyMessage) (*pb
 }
 
 func (r *Router) SetConnection(ctx context.Context, request *pb.InfoRequest) (*pb.EmptyMessage, error) {
-	r.info.NextAddress = request.GetInfo().NextAddress
-	r.info.NextHash = request.GetInfo().NextHash
-	r.info.PrevAddress = request.GetInfo().PrevAddress
-	r.info.PrevHash = request.GetInfo().PrevHash
+	if request.GetInfo().NextAddress != "" {
+		r.info.NextAddress = request.GetInfo().NextAddress
+		r.info.NextHash = request.GetInfo().NextHash
+	}
+	if request.GetInfo().PrevAddress != "" {
+		r.info.PrevAddress = request.GetInfo().PrevAddress
+		r.info.PrevHash = request.GetInfo().PrevHash
+	}
 	// Let the heartbeat service to deal with this change.
-	event.Publish("change", struct{}{})
+	event.Publish("redirect", struct{}{})
 	return &pb.EmptyMessage{}, nil
 }
 

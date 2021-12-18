@@ -8,6 +8,4 @@ server:
   # Keepalive service to keepalive in the cluster.
   keepalive:
     # The duration of keepalive time out, which calculated in seconds.
-    time_out: 30
-    # Node will retry some times to reconnect.
-    error_retry: 5
+    time_out: 20
