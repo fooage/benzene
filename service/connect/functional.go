@@ -42,6 +42,18 @@ func (r *Router) ConnectCluster(addr string) {
 	if err != nil {
 		log.Fatalf("rpc set connection error: %v\n", err)
 	}
+	conn, err = grpc.Dial(reply.GetInfo().NextAddress, opts...)
+	if err != nil {
+		log.Fatalf("can't dial to %s: %v\n", addr, err)
+	}
+	client = pb.NewRouterClient(conn)
+	_, err = client.SetConnection(context.Background(), &pb.InfoRequest{Info: &pb.Information{
+		PrevAddress: r.info.CurrAddress,
+		PrevHash:    r.info.CurrHash,
+	}})
+	if err != nil {
+		log.Fatalf("rpc set connection error: %v\n", err)
+	}
 	go r.ReconnectCluster()
 }
 
