@@ -67,6 +67,7 @@ func (r Router) MoveGuide(ctx context.Context, request *pb.InfoRequest) (*pb.Inf
 		if err != nil {
 			return nil, err
 		}
+		defer conn.Close()
 		client := pb.NewRouterClient(conn)
 		// Recursively call the next node to see if the conditions are met.
 		return client.MoveGuide(context.Background(), request)

@@ -30,11 +30,12 @@ func (r *Router) ConnectCluster(addr string) {
 	r.info.PrevAddress = reply.GetInfo().CurrAddress
 	r.info.PrevHash = reply.GetInfo().CurrHash
 	event.Publish("redirect", struct{}{})
-	conn, err = grpc.Dial(reply.GetInfo().CurrAddress, opts...)
+	prevConn, err := grpc.Dial(reply.GetInfo().CurrAddress, opts...)
 	if err != nil {
 		log.Fatalf("can't dial to %s: %v\n", addr, err)
 	}
-	client = pb.NewRouterClient(conn)
+	defer prevConn.Close()
+	client = pb.NewRouterClient(prevConn)
 	_, err = client.SetConnection(context.Background(), &pb.InfoRequest{Info: &pb.Information{
 		NextAddress: r.info.CurrAddress,
 		NextHash:    r.info.CurrHash,
@@ -42,11 +43,12 @@ func (r *Router) ConnectCluster(addr string) {
 	if err != nil {
 		log.Fatalf("rpc set connection error: %v\n", err)
 	}
-	conn, err = grpc.Dial(reply.GetInfo().NextAddress, opts...)
+	nextConn, err := grpc.Dial(reply.GetInfo().NextAddress, opts...)
 	if err != nil {
 		log.Fatalf("can't dial to %s: %v\n", addr, err)
 	}
-	client = pb.NewRouterClient(conn)
+	defer nextConn.Close()
+	client = pb.NewRouterClient(nextConn)
 	_, err = client.SetConnection(context.Background(), &pb.InfoRequest{Info: &pb.Information{
 		PrevAddress: r.info.CurrAddress,
 		PrevHash:    r.info.CurrHash,
