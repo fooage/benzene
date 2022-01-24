@@ -9,3 +9,10 @@ server:
   keepalive:
     # The duration of keepalive time out, which calculated in seconds.
     time_out: 20
+  transport:
+    # The time duration of backup, which calculated in seconds.
+    duration: 10
+    # Chunk's size of file (kilo byte) transform in once.
+    chunk_size: 256
+    # Storage directory in this node. For Backup and normal.
+    storage_directory: './storage'

@@ -7,6 +7,7 @@ import (
 	"github.com/fooage/messier/proto/pb"
 	"github.com/fooage/messier/service/connect"
 	"github.com/fooage/messier/service/keepalive"
+	"github.com/fooage/messier/service/transport"
 	"github.com/fooage/messier/utils"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -33,11 +34,11 @@ func init() {
 	access = viper.GetString("server.connect.access_address")
 	information = pb.Information{
 		CurrAddress: local,
-		CurrHash:    utils.StringToMD5(local),
+		CurrHash:    utils.EncodeStringHash(local),
 		NextAddress: local,
-		NextHash:    utils.StringToMD5(local),
+		NextHash:    utils.EncodeStringHash(local),
 		PrevAddress: local,
-		PrevHash:    utils.StringToMD5(local),
+		PrevHash:    utils.EncodeStringHash(local),
 	}
 }
 
@@ -49,14 +50,17 @@ func main() {
 	server := grpc.NewServer(opts...)
 	router := connect.NewRouter(&information)
 	heartbeat := keepalive.NewHeartbeat(&information)
+	porter := transport.NewPorter(&information)
 	// TODO: Add the connection logic code for router and heartbeat service.
 	// If this node is original node in the cluster, it will not access other
 	// node. Key goroutines for connection and disconnection and reconnection
 	// in the cluster's ring.
 	go router.ConnectCluster(access)
 	go heartbeat.HeartKeeping()
+	go porter.AdjustStorage()
 	pb.RegisterRouterServer(server, router)
 	pb.RegisterHeartbeatServer(server, heartbeat)
+	pb.RegisterPorterServer(server, porter)
 	if err = server.Serve(lis); err != nil {
 		log.Fatalf("server happend an error: %v\n", err)
 	}
