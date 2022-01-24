@@ -15,21 +15,19 @@ import (
 type Heartbeat struct {
 	info    *pb.Information
 	timeout time.Duration
-	retry   int
 	// This interface is very important and deals with listening for changes
 	// in connection information within this node so that other services can
 	// handle it correctly.
-	event event.EventChannel
+	redirect event.EventChannel
 	pb.UnimplementedHeartbeatServer
 }
 
 func NewHeartbeat(info *pb.Information) *Heartbeat {
-	ch := make(event.EventChannel, 8)
-	event.Subscribe("change", ch)
+	redirectChannel := make(event.EventChannel, 8)
+	event.Subscribe("redirect", redirectChannel)
 	return &Heartbeat{info: info,
-		timeout: time.Second * time.Duration(viper.GetInt64("server.keepalive.time_out")),
-		retry:   viper.GetInt("server.keepalive.error_retry"),
-		event:   ch,
+		timeout:  time.Second * time.Duration(viper.GetInt64("server.keepalive.time_out")),
+		redirect: redirectChannel,
 	}
 }
 
@@ -51,7 +49,8 @@ func (h Heartbeat) HeartWatch(request *pb.HeartbeatRequest, server pb.Heartbeat_
 	for {
 		err := server.Send(&pb.HeartbeatReply{Status: pb.HeartbeatReply_SERVING})
 		if err != nil {
-			log.Fatalf("keepalive has been killed: %v\n", err)
+			log.Printf("keepalive has been killed: %v\n", err)
+			return err
 		}
 		<-trick.C
 	}
