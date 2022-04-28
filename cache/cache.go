@@ -2,6 +2,7 @@ package cache
 
 import (
 	"container/list"
+	"log"
 	"sync"
 )
 
@@ -56,7 +57,7 @@ func (u *UniversalCache) SET(key string, value Value) {
 	if node, hit := u.index[key]; hit {
 		// if hit the cache to update
 		item := node.Value.(*Item)
-		u.nowBytes -= int64(len(*item.value.Raw())) + int64(len(*value.Raw()))
+		u.nowBytes += int64(len(*value.Raw())) - int64(len(*item.value.Raw()))
 		item.value = value
 		u.recently.MoveToFront(node)
 	} else {
@@ -66,7 +67,7 @@ func (u *UniversalCache) SET(key string, value Value) {
 		u.index[key] = node
 	}
 	// Eliminate redundant cache, when the nowBytes > maxBytes
-	for u.nowBytes < u.maxBytes {
+	for u.nowBytes > u.maxBytes {
 		node := u.recently.Back()
 		if node != nil {
 			item := node.Value.(*Item)
@@ -75,4 +76,5 @@ func (u *UniversalCache) SET(key string, value Value) {
 			u.nowBytes -= int64(len(item.key)) + int64(len(*item.value.Raw()))
 		}
 	}
+	log.Printf("Cache space use: (%v/%v)\n", u.nowBytes, u.maxBytes)
 }

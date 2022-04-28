@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/fooage/benzene/cache"
+	gateway "github.com/fooage/benzene/gateway/http"
 	"github.com/fooage/benzene/service"
 	"github.com/spf13/viper"
 )
@@ -31,7 +33,8 @@ func main() {
 	registerService(service.Guider)
 	defer deregisterService(service.Guider)
 	// TODO: To add the file or cache service.
-
+	cache.CreateInstance()
+	gateway.ServeWithHTTP()
 }
 
 func registerService(r service.ServiceGuider) {
