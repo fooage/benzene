@@ -2,7 +2,6 @@ package cache
 
 import (
 	"container/list"
-	"log"
 	"sync"
 )
 
@@ -76,5 +75,4 @@ func (u *UniversalCache) SET(key string, value Value) {
 			u.nowBytes -= int64(len(item.key)) + int64(len(*item.value.Raw()))
 		}
 	}
-	log.Printf("Cache space use: (%v/%v)\n", u.nowBytes, u.maxBytes)
 }

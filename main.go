@@ -1,17 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/fooage/benzene/cache"
 	gateway "github.com/fooage/benzene/gateway/http"
 	"github.com/fooage/benzene/service"
+	"github.com/fooage/benzene/tools"
 	"github.com/spf13/viper"
 )
 
 func init() {
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("./config")
 	viper.SetConfigName("config")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -19,7 +21,7 @@ func init() {
 	}
 	// init this node's service info
 	name := viper.GetString("service.name")
-	addr := viper.GetString("service.address")
+	addr := fmt.Sprintf("%s:%d", tools.LocalAddress(), viper.GetInt("service.port"))
 	service.Info = *service.NewServiceInfo(name, addr)
 	// init service discovery
 	addr = viper.GetString("discovery.address")
@@ -34,7 +36,7 @@ func main() {
 	defer deregisterService(service.Guider)
 	// TODO: To add the file or cache service.
 	cache.CreateInstance()
-	gateway.ServeWithHTTP()
+	gateway.ServeWithHTTP(service.Info.Addr)
 }
 
 func registerService(r service.ServiceGuider) {

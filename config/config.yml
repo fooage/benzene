@@ -1,16 +1,16 @@
 # Here is the service related configuration.
 service:
   name: "benzene"
-  # service full address
-  address: "172.17.0.2:8090"
+  # service http gateway port
+  port: 8090
 
 # Set up a service discovery that can be extended by implementing an 
 # interface. Currently using consul as service discovery.
 discovery:
-  address: "172.17.0.3:8500"
+  address: "172.17.0.2:8500"
   # hash func using in this ring (crc32, adler32)
   consistent_hash: "crc32"
 
 cache:
   # Set the maximum capacity of the node cache in byte!
-  max_bytes: 256
+  max_bytes: 8192

@@ -15,11 +15,12 @@ type ServiceInfo struct {
 }
 
 func NewServiceInfo(name string, addr string) *ServiceInfo {
-	tcp, err := net.ResolveTCPAddr("tcp", viper.GetString("service.address"))
+	tcp, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
 		log.Fatalf("Resolve service addr error: %v\n", err)
 		return nil
 	}
+	log.Printf("Service addr is [%s]\n", tcp.String())
 	return &ServiceInfo{
 		Name: viper.GetString("service.name"),
 		Addr: tcp,

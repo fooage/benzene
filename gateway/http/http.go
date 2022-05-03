@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"log"
+	"net"
 	"net/http"
 
 	"github.com/fooage/benzene/cache"
@@ -24,11 +25,11 @@ func (v Value) Raw() *[]byte {
 	return &raw
 }
 
-func ServeWithHTTP(addr ...string) {
+func ServeWithHTTP(addr net.Addr) {
 	r := gin.Default()
 	r.POST("/get", redirect, get)
 	r.POST("/set", redirect, set)
-	if err := r.Run(addr...); err != nil {
+	if err := r.Run(addr.String()); err != nil {
 		log.Fatalf("Http server run error: %v\n", err)
 		return
 	}
@@ -47,7 +48,6 @@ func redirect(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	log.Printf("Request item: %+v\n", item)
 	addr, err := service.Guider.PickPeer(item.Key, service.Info)
 	if err != nil {
 		log.Printf("Redirect pick peer error: %v\n", err)
